@@ -34,6 +34,7 @@ class Libro(models.Model):
     editor = models.ForeignKey(Editor,on_delete = models.CASCADE)
     fecha_publicacion = models.DateField(blank=True,null=True)
     portada = models.ImageField(upload_to="portadas",null=True)
+    precio = models.DecimalField(max_digits=12,decimal_places=2,null=True)
 
     class Meta:
         ordering = ["titulo"]
