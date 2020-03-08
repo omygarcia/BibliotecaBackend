@@ -19,9 +19,14 @@ from django.urls import path,include
 from django.conf.urls.static import static
 from django.conf import settings
 
+from libros.views import LoginView,LogoutView
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1.0/',include(("libros.urls","libros"))),
+    #path('api/v1.0/auth',include("rest_auth.urls")),
+    path('api/v1.0/auth/login',LoginView.as_view()),
+    path('api/v1.0/auth/logout',LogoutView.as_view()),
 ]
 
 urlpatterns+=static(settings.MEDIA_URL,document_root=settings.MEDIA_ROOT)

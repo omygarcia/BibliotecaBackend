@@ -1,6 +1,10 @@
 from rest_framework import serializers
 from .models import Libro, Autor, Editor
 
+from django.contrib.auth.models import User 
+from django.contrib.auth import authenticate
+from rest_framework import exceptions
+
 
 
 class AutorSerializer(serializers.ModelSerializer):
@@ -27,4 +31,27 @@ class LibroSerializer(serializers.ModelSerializer):
             'id','titulo','autores','editor','fecha_publicacion','portada','precio'
         )
 
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField()
+    password = serializers.CharField()
+
+    def validate(self, data):
+        username = data.get("username","")
+        password = data.get("password","")
+
+        if username and password:
+            user = authenticate(username=username, password=password)
+            if user:
+                if user.is_active:
+                    data["user"] = user 
+                else:
+                    msg = "El usuario esta desactivado"
+                    raise exceptions.ValidateError(msg)
+            else:
+                msg = "El usuario o password no son correctos"
+                raise exceptions.ValidateError(msg)
+        else:
+            msg = "debes ingresar un usuario y una contraseña"
+            raise exceptions.ValidateError(msg)
+        return data
 

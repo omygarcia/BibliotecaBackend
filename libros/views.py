@@ -14,6 +14,10 @@ from rest_framework.filters import OrderingFilter, SearchFilter
 from django_filters import FilterSet
 from django_filters import rest_framework as filters
 
+#autenticacion
+from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
+from rest_framework.permissions import IsAuthenticated,IsAdminUser
+
 # Create your views here.
 
 class LibroFilter(FilterSet):
@@ -40,6 +44,8 @@ class LibroFilter(FilterSet):
 class LibroList(generics.ListCreateAPIView):
     queryset = Libro.objects.all()
     serializer_class = LibroSerializer
+    #authentication_clases = (TokenAuthentication, SessionAuthentication,BasicAuthentication)
+    #permission_classes = (IsAuthenticated, IsAdminUser,)
     filter_backends = (DjangoFilterBackend, OrderingFilter, SearchFilter)
     #filter_fields = ("titulo","editor__nombre","autores__nombre")
     filter_class = LibroFilter
@@ -88,3 +94,26 @@ def buscar_libro(request):
     libros = Libro.objects.filter(titulo__contains=buscar)
     serializer = LibroSerializer(libros,many=True)
     return JsonResponse(serializer.data,safe=False)
+
+from rest_framework.views import APIView
+from .serializers import LoginSerializer
+from django.contrib.auth import login as django_login, logout as django_logout
+from rest_framework.authtoken.models import Token
+#from rest_framework.authentication import TokenAuthentication
+#from rest_framework.response import Response
+
+class LoginView(APIView):
+    def post(self,request):
+        serializer = LoginSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True) 
+        user = serializer.validated_data["user"]
+        django_login(request,user)
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({"token":token.key},status=200)
+
+class LogoutView(APIView):
+    authentication_clases = {TokenAuthentication,}
+
+    def post(self,request):
+        django_logout(request)
+        return Response(status=204)
